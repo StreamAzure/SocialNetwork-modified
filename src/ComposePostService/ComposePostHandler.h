@@ -131,6 +131,7 @@ Creator ComposePostHandler::_ComposeCreaterHelper(
   auto user_client = user_client_wrapper->GetClient();
   Creator _return_creator;
   try {
+    LOG(info) << " user_client->ComposeCreatorWithUserId";
     user_client->ComposeCreatorWithUserId(_return_creator, req_id, user_id,
                                           username, writer_text_map);
   } catch (...) {
@@ -169,6 +170,7 @@ TextServiceReturn ComposePostHandler::_ComposeTextHelper(
   auto text_client = text_client_wrapper->GetClient();
   TextServiceReturn _return_text;
   try {
+    LOG(info) << "text_client->ComposeText";
     text_client->ComposeText(_return_text, req_id, text, writer_text_map);
   } catch (...) {
     LOG(error) << "Failed to send compose-text to text-service";
@@ -207,6 +209,7 @@ std::vector<Media> ComposePostHandler::_ComposeMediaHelper(
   auto media_client = media_client_wrapper->GetClient();
   std::vector<Media> _return_media;
   try {
+    LOG(info) << "media_client->ComposeMedia";
     media_client->ComposeMedia(_return_media, req_id, media_types, media_ids,
                                writer_text_map);
   } catch (...) {
@@ -246,6 +249,7 @@ int64_t ComposePostHandler::_ComposeUniqueIdHelper(
   try {
     _return_unique_id =
         unique_id_client->ComposeUniqueId(req_id, post_type, writer_text_map);
+    LOG(info) << "unique_id_client->ComposeUniqueId: " << _return_unique_id;
   } catch (...) {
     LOG(error) << "Failed to send compose-unique_id to unique_id-service";
     _unique_id_service_client_pool->Remove(unique_id_client_wrapper);
@@ -261,7 +265,7 @@ void ComposePostHandler::_UploadPostHelper(
     int64_t req_id, const Post &post,
     const std::map<std::string, std::string> &carrier) {
   TextMapReader reader(carrier);
-  std::this_thread::sleep_for(std::chrono::seconds(2));
+  std::this_thread::sleep_for(std::chrono::seconds(1));
   auto parent_span = opentracing::Tracer::Global()->Extract(reader);
   auto span = opentracing::Tracer::Global()->StartSpan(
       "store_post_client", {opentracing::ChildOf(parent_span->get())});
@@ -280,6 +284,7 @@ void ComposePostHandler::_UploadPostHelper(
   }
   auto post_storage_client = post_storage_client_wrapper->GetClient();
   try {
+    LOG(info) << "post_storage_client->StorePost\n" << post;
     post_storage_client->StorePost(req_id, post, writer_text_map);
   } catch (...) {
     _post_storage_client_pool->Remove(post_storage_client_wrapper);
@@ -289,6 +294,7 @@ void ComposePostHandler::_UploadPostHelper(
   _post_storage_client_pool->Keepalive(post_storage_client_wrapper);
 
   span->Finish();
+  LOG(info) << "store post finished";
 }
 
 void ComposePostHandler::_UploadUserTimelineHelper(
@@ -313,6 +319,7 @@ void ComposePostHandler::_UploadUserTimelineHelper(
   }
   auto user_timeline_client = user_timeline_client_wrapper->GetClient();
   try {
+    LOG(info) << "user_timeline_client->WriteUserTimeline " << post_id << " "<< user_id;
     user_timeline_client->WriteUserTimeline(req_id, post_id, user_id, timestamp,
                                             writer_text_map);
   } catch (...) {
@@ -322,6 +329,7 @@ void ComposePostHandler::_UploadUserTimelineHelper(
   _user_timeline_client_pool->Keepalive(user_timeline_client_wrapper);
 
   span->Finish();
+  LOG(info) << "write_user_timeline finished";
 }
 
 void ComposePostHandler::_UploadHomeTimelineHelper(
@@ -347,6 +355,7 @@ void ComposePostHandler::_UploadHomeTimelineHelper(
   }
   auto home_timeline_client = home_timeline_client_wrapper->GetClient();
   try {
+    LOG(info) << "home_timeline_client->WriteHomeTimeline " << post_id << " "<< user_id;
     home_timeline_client->WriteHomeTimeline(req_id, post_id, user_id, timestamp,
                                             user_mentions_id, writer_text_map);
   } catch (...) {
@@ -357,6 +366,7 @@ void ComposePostHandler::_UploadHomeTimelineHelper(
   _home_timeline_client_pool->Keepalive(home_timeline_client_wrapper);
 
   span->Finish();
+  LOG(info) << "write_home_timeline_finished";
 }
 
 void ComposePostHandler::ComposePost(
