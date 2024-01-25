@@ -29,7 +29,7 @@ def dec_random(length):
 
 def generate_request():
     # user_index = random.randint(0, max_user_index - 1)
-    user_index = 4
+    user_index = USERID
     username = "username_" + str(user_index)
     user_id = str(user_index)
     # text = string_random(256)
@@ -83,5 +83,5 @@ def generate_request():
 
     print('=========================================')
 
-    return requests.Request(method, url, headers=headers, data=body).prepare()
+    return requests.Request(method, url, headers=headers, data=body).prepare(), formatted_time
 

@@ -11,7 +11,7 @@ def send_request(request):
 # 使用 ThreadPoolExecutor 并行发送请求
 with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
     # 使用 submit() 函数提交任务，将 send_request 函数和对应的 request 传递进去
-    compost_req = compost_post_req()
+    compost_req, text_formatted_time = compost_post_req()
     read_req = read_user_timeline_req()
 
     future1 = executor.submit(send_request, compost_req)
@@ -26,6 +26,12 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
 print(f'Response from compost_req: {response1}')
 print(f'Response from read_req: {response2}')
 print('=========================================')
+
+# 检查是否能读取到前一个请求写入的 post
+if text_formatted_time in response2:
+    print("读取到刚刚提交的post")
+else:
+    print("未能读取刚刚提交的post！")
 
 # 获取当前时间
 current_time = datetime.now()
