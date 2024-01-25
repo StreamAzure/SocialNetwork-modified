@@ -265,7 +265,6 @@ void ComposePostHandler::_UploadPostHelper(
     int64_t req_id, const Post &post,
     const std::map<std::string, std::string> &carrier) {
   TextMapReader reader(carrier);
-  std::this_thread::sleep_for(std::chrono::milliseconds(5));
   auto parent_span = opentracing::Tracer::Global()->Extract(reader);
   auto span = opentracing::Tracer::Global()->StartSpan(
       "store_post_client", {opentracing::ChildOf(parent_span->get())});
@@ -284,6 +283,7 @@ void ComposePostHandler::_UploadPostHelper(
   }
   auto post_storage_client = post_storage_client_wrapper->GetClient();
   try {
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
     LOG(info) << "post_storage_client->StorePost\n" << post;
     post_storage_client->StorePost(req_id, post, writer_text_map);
   } catch (...) {
