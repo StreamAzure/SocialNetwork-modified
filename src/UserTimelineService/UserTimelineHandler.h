@@ -204,7 +204,12 @@ void UserTimelineHandler::ReadUserTimeline(
       {opentracing::ChildOf(&span->context())});
 
   std::vector<std::string> post_ids_str;
+  for (const auto& post_id : post_ids_str) {
+      LOG(info) << "post_id: " << post_id << " ";
+  }
+
   try {
+    LOG(info) << "find post in Redis database";
     if (_redis_client_pool)
       _redis_client_pool->zrevrange(std::to_string(user_id), start, stop - 1,
                                   std::back_inserter(post_ids_str));
@@ -247,6 +252,8 @@ void UserTimelineHandler::ReadUserTimeline(
       se.message = "Failed to create collection user-timeline from MongoDB";
       throw se;
     }
+
+    LOG(info) << "find post in user-timeline";
 
     bson_t *query = BCON_NEW("user_id", BCON_INT64(user_id));
     bson_t *opts = BCON_NEW("projection", "{", "posts", "{", "$slice", "[",
@@ -300,6 +307,7 @@ void UserTimelineHandler::ReadUserTimeline(
     mongoc_client_pool_push(_mongodb_client_pool, mongodb_client);
   }
 
+
   std::future<std::vector<Post>> post_future =
       std::async(std::launch::async, [&]() {
         auto post_client_wrapper = _post_client_pool->Pop();
@@ -312,6 +320,7 @@ void UserTimelineHandler::ReadUserTimeline(
         std::vector<Post> _return_posts;
         auto post_client = post_client_wrapper->GetClient();
         try {
+          LOG(info) << "Try to read posts from post-storage-service";
           post_client->ReadPosts(_return_posts, req_id, post_ids,
                                  writer_text_map);
         } catch (...) {

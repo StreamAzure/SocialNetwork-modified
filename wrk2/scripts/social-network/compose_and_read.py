@@ -43,6 +43,5 @@ def compose_and_read():
 
     print(f"Current Time: {formatted_time}")
 
-while(True):
-    time.sleep(1)
-    compose_and_read()
+
+compose_and_read()
